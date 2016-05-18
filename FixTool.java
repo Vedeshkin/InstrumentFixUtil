@@ -1,7 +1,10 @@
+ackage FixTool;
+
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -9,24 +12,29 @@ import java.util.*;
 /**
  * Created by vedeshkin on 20.12.2015.
  */
-public class FixTool {
+class FixTool {
     private static final SimpleDateFormat inputFullDateFormat = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS");
     private static final SimpleDateFormat outputFullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private static boolean MINUTES = false;
+    private static  String path_to_mapping_file;
+    private static String path_to_charts_in_csv ;
+    private static String[] suffixes = {"X", "Y", "Z", ""};
     public FixTool() {
     }
 
     public static void main(String[] args) throws Exception {
-        Map symbolMapping = getRicToDxSymbolMapping("C:\\temp\\charts\\Intsrument\\quota_limit_symbols.conf");
-        String filepath = "C:\\temp\\charts\\Intsrument\\";
+        if(args.length < 3) {System.out.println("Illegal usages!Call Vedeshkin for details xD");return;}
 
-        String[] suffixes = {"X", "Y", "Z", ""};
-        List<String> filelist = listFilesForFolder(new File(filepath));
+        Map symbolMapping = getRicToDxSymbolMapping(args[0]);
+        path_to_charts_in_csv = args[1];
+        MINUTES = args[3].equals("min")? true : false;
+        List<String> filelist = listFilesForFolder(new File(path_to_charts_in_csv));
         for (String filename: filelist) {
             BufferedReader br;
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(filepath+filename))));
+            br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(path_to_charts_in_csv+filename))));
             PrintWriter[] writers = new PrintWriter[suffixes.length];
             for (int i = 0; i < writers.length; i++) {
-                File f = new File(filepath + filename + "&" + suffixes[i] + "_day.csv");
+                File f = new File(path_to_charts_in_csv + filename + "&" + suffixes[i] + "_day.csv");
                 if (f.createNewFile()) {
                     writers[i] = new PrintWriter(f);
                 } else {
@@ -39,7 +47,7 @@ public class FixTool {
             while ((line = br.readLine()) != null) {
                 if (start != 0) {
                     for (int i = 0; i < suffixes.length; i++) {
-                        writers[i].println(convert(line, symbolMapping, suffixes[i]));
+                        writers[i].println(MINUTES ? convertMin(line, symbolMapping, suffixes[i]):convert(line, symbolMapping, suffixes[i]));
                     }
 
                 }
@@ -108,6 +116,34 @@ public class FixTool {
             }
         }
         return filenames;
+    }
+    private static String convertMin(String trthMinuteString, Map<String, String> symbolMapping, String symbolSuffix) {
+        String ampSymbolSuffix = symbolSuffix.isEmpty()?"":"&" + symbolSuffix;
+        String[] parts = trthMinuteString.split(",", -1);
+        String symbol = (String)symbolMapping.get(parts[0])+"mini" + ampSymbolSuffix;
+        //#RIC,Date[G],Time[G],GMT Offset,Type,Open,High,Low,Last,Volume,VWAP
+        //.STOXX50,20150102,08:00:00.000,+1,Intraday 1Min,3017.3,3020.56,3017.3,3020.14,2791551,
+        String date = parts[1];
+        String time = parts[2];
+        String open = parts[5];
+        String high = parts[6];
+        String low = parts[7];
+        String close = parts[8];
+        String volume = parts[9];
+        String vwap = parts[10];
+        if(vwap.isEmpty()) {
+            vwap = "0";
+        }
+
+        Date datetime = null;
+        try {
+            datetime = inputFullDateFormat.parse(date + "-" + time);
+        } catch (ParseException ex) {
+           System.out.println(ex.getMessage());
+        }
+
+        String outDate = outputFullDateFormat.format(datetime);
+        return symbol + "{price=bid}," + outDate + "," + open + "," + high + "," + low + "," + close + "," + volume + "," + vwap;
     }
 
     }
