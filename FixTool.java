@@ -9,10 +9,10 @@ import java.util.*;
 /**
  * Created by vedeshkin on 20.12.2015.
  */
-public class Test {
+public class FixTool {
     private static final SimpleDateFormat inputFullDateFormat = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS");
     private static final SimpleDateFormat outputFullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    public Test() {
+    public FixTool() {
     }
 
     public static void main(String[] args) throws Exception {
