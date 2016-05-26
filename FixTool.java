@@ -3,6 +3,7 @@
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -16,7 +17,6 @@ public class FixTool {
     private static final SimpleDateFormat inputFullDateFormat = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS");
     private static final SimpleDateFormat outputFullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static boolean parsingMode = false;
-    private static String path_to_charts_in_csv ;
     private static String[] suffixes = {"X", "Y", "Z", ""};
     private static Map<String,String> symbolMapping;
     public FixTool() {
@@ -34,23 +34,12 @@ public class FixTool {
             config.load(Files.newBufferedReader(Paths.get(args[0])));
         }catch (IOException ex)
         {System.out.println("Cound't open config file:"+args[0]);}
-        config.list(System.out);
 
         symbolMapping = getRicToDxSymbolMapping(config.getProperty("mappingFile"));
-        path_to_charts_in_csv = config.getProperty("inputDir");
         parsingMode = config.getProperty("parsingMode").equals("Day")?false:true;
+        List<Path> filelist = fileList.getFiles(config.getProperty("inputDir"),config.getProperty("pattern"));
 
-
-
-        List<String> filelist = listFilesForFolder(new File(path_to_charts_in_csv));
-        /* TODO: 21.05.2016
-        * There is should be another way to get all file to parse!
-        * Also we need add to config some  kind of file mask to determind what files in dir
-        * should be added to file list.This improvment help us to exclude all redudant files from parsing
-        *Also it's good idea to contain in fileList FULL path to files.
-        */
-        for (String filename: filelist) {
-            //String s = getSymbol(path_to_charts_in_csv+"\\"+ filename);
+        for (Path file: filelist) {
 
             /* TODO: 21.05.2016
             *Here we need to to some hard-coding job
@@ -59,14 +48,14 @@ public class FixTool {
             * many file simultaniosly.
             *
              */
-
-
-            BufferedReader br;
-            br = new BufferedReader(new InputStreamReader(new FileInputStream(new File(path_to_charts_in_csv+"\\" + filename))));
+            BufferedReader br = Files.newBufferedReader(file);
             PrintWriter[] writers = new PrintWriter[suffixes.length];
             for (int i = 0; i < writers.length; i++) {
-                String fileout = path_to_charts_in_csv +"\\"+ filename.substring(0,filename.length() -4) + "&" + suffixes[i]+"_correct" + (parsingMode ? "_minute" :"_day")+".csv";
-                File f = new File(fileout);
+                //There should be another way of file creation...
+                //Also i'm not sure if constuction below will work...But who care?
+                //At least we have usable file-getting user-frienly methods.
+                Path p = Paths.get(config.getProperty("outputDir")).resolve(file.getFileName().toString()+"converted.csv");
+                File f = p.toFile();
                 if (f.createNewFile()) {
                     writers[i] = new PrintWriter(f);
                 } else {
@@ -147,24 +136,7 @@ public class FixTool {
 
         return mapping;
     }
-    private static String getSymbol(String filename)
-    {String line = "";
-        try {
-        line = Files.readAllLines(Paths.get(filename)).get(2);
-        line = line.substring(0,line.indexOf(","));
-    }catch (IOException fileNotFound)
-    {System.out.println(filename + "is not found");}
-        return symbolMapping.get(line);
-    }
-    private static List<String> listFilesForFolder (final File folder) {
-        List<String> filenames = new LinkedList<String>();
-        for (final File fileEntry : folder.listFiles()) {
-            if(fileEntry.getName().contains(".csv")){
-                filenames.add(fileEntry.getName());
-            }
-        }
-        return filenames;
-    }
+
     private static String convertMin(String trthMinuteString, Map<String, String> symbolMapping, String symbolSuffix) {
         String ampSymbolSuffix = symbolSuffix.isEmpty()?"":"&" + symbolSuffix;
         String[] parts = trthMinuteString.split(",", -1);
