@@ -106,7 +106,7 @@ public class FixTool {
         String open = parts[4];
         String high = parts[5];
         String low = parts[6];
-        String close = parts[7];
+        String close = parts[7].isEmpty()?parts[4]:parts[7];
         String volume = parts[8];
         String vwap;
         if (parts.length < 11) {
