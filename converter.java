@@ -1,10 +1,9 @@
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Properties;
 
 /**
  * Created by vedeshkin on 27.05.2016.
@@ -34,10 +33,21 @@ public class converter {
         //skip first line in file;
         for(int i =1;i<buffer.size();i++)
         {
-
+            buffer.set(i,parse(buffer.get(i)));
         }
     }
-    private String parse(String line){
+    private String parse(String line) {
+
+        String[] values = splitline(line);
+        if (values[4].isEmpty() || values[5].isEmpty() || values[6].isEmpty() || values[7].isEmpty()){
+            System.out.println("Price not found!");
+        return null;
+    }
+        try {
+            String date = FixTool.outputFullDateFormat.format(FixTool.inputFullDateFormat.parse(values[1] + "-" + values[2]));
+        } catch (Exception ex) {
+            System.out.println(ex.getMessage());
+        }
 
 
         return  null;

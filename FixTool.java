@@ -14,8 +14,8 @@ import java.util.*;
  * Created by vedeshkin on 20.12.2015.
  */
 public class FixTool {
-    private static final SimpleDateFormat inputFullDateFormat = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS");
-    private static final SimpleDateFormat outputFullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    public static final SimpleDateFormat inputFullDateFormat = new SimpleDateFormat("yyyyMMdd-HH:mm:ss.SSS");
+    public static final SimpleDateFormat outputFullDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     private static boolean parsingMode = false;
     private static String[] suffixes = {"X", "Y", "Z", ""};
     private static Map<String,String> symbolMapping;
