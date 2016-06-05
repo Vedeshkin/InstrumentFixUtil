@@ -1,3 +1,5 @@
+package fixtool;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -12,17 +14,16 @@ public class Config {
     private Properties config;
     private String configFile;
 
-    public Config(String configFile){
+    public Config(String configFile) {
 
         this.configFile = configFile;
 
 
     }
-    public boolean loadConfig()
-    {
+
+    public boolean loadConfig() {
         config = new Properties();
-        if(configFile.isEmpty())
-        {
+        if (configFile.isEmpty()) {
             System.out.println("Config file is not specified!Unable to start utility");
             System.out.println("Usage:FixTool <path_to_config>");
             return false;
@@ -33,11 +34,11 @@ public class Config {
             System.out.println("Cound't open config file:" + configFile);
             return false;
         }
-        return  true;
+        return true;
     }
 
 
     public String getProperty(String key) {
-       return config.getProperty(key);
+        return config.getProperty(key);
     }
 }

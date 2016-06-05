@@ -1,8 +1,11 @@
+package fixtool;
+
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.LinkedList;
 import java.util.List;
@@ -12,6 +15,7 @@ import java.util.List;
  */
 public class converter implements Runnable {
     private Path file;
+    private Path fileOut;
     private Thread thread;
     private List<String> buffer;
     private PrintWriter pw;
@@ -29,19 +33,18 @@ public class converter implements Runnable {
     }
 
 
-
-    private  void readFile(Path filename){
-        try{
-        buffer = Files.readAllLines(filename);}
-        catch (IOException ex)
-        { System.out.println(ex.getMessage());}
+    private void readFile(Path filename) {
+        try {
+            buffer = Files.readAllLines(filename);
+        } catch (IOException ex) {
+            System.out.println(ex.getMessage());
+        }
     }
-    private void convert()
-    {
+
+    private void convert() {
 
         //skip first line in file;
-        for(int i =1;i<buffer.size();i++)
-        {
+        for (int i = 1; i < buffer.size(); i++) {
             String s = buffer.get(i);
             try {
                 s = parse(s);
@@ -93,6 +96,13 @@ public class converter implements Runnable {
         result.append(0);//VWAP?
 
         return result.toString();
+    }
+
+    private void createOutFileName() {
+        String s = buffer.get(1).split(",", 1).toString();
+        s = FixTool.symbolMapping.get(s).replaceAll("/", "");
+        s = s + "_converted_minute.csv";
+        fileOut = Paths.get(FixTool.config.getProperty("outputDir")).resolve(file.getFileName().toString() + "converted.csv");
     }
 
     @Override
